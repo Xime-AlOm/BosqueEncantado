@@ -211,8 +211,7 @@ const treeColliders = [];
 function addTree(x, z, scale = 1) {
     const trunk = new THREE.Mesh(
         new THREE.CylinderGeometry(0.12 * scale, 0.22 * scale, 2.6 * scale, 8),
-        new THREE.MeshStandardMaterial({ color: 0x3a2b1a, roughness: 1 })
-    );
+        new THREE.MeshStandardMaterial({ color: 0x3a2b1a, roughness: 1 })    );
     trunk.castShadow = true;
     trunk.receiveShadow = true;
 
