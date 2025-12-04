@@ -2,9 +2,12 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <title>Bosque nocturno VR • Colisiones + UI</title>
+    <title>Bosque Encantado VR • Experiencia Inmersiva</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style4.css" />
+    <!-- Fuentes adicionales para la portada -->
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Importmap: Three.js + Addons (ESM) -->
     <script type="importmap">
@@ -15,10 +18,226 @@
       }
     }
     </script>
+    
+    <!-- ESTILOS PARA LOS MENSAJES DE VICTORIA/DERROTA -->
+    <style>
+        /* Estilos para los mensajes de juego */
+        #winMessage, #loseMessage {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            display: none !important;
+            justify-content: center !important;
+            align-items: center !important;
+            z-index: 9999 !important;
+            background: rgba(0, 0, 0, 0.95) !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 20px !important;
+            box-sizing: border-box !important;
+            pointer-events: auto !important;
+        }
+        
+        .win-content, .lose-content {
+            text-align: center;
+            padding: 3rem !important;
+            border-radius: 20px !important;
+            max-width: 600px !important;
+            width: 90% !important;
+            margin: 0 auto !important;
+            position: relative !important;
+            z-index: 10000 !important;
+            pointer-events: auto !important;
+        }
+        
+        .win-content {
+            background: linear-gradient(135deg, rgba(0,40,0,0.95) 0%, rgba(40,80,40,0.95) 100%) !important;
+            border: 4px solid #ffdd44 !important;
+            box-shadow: 0 0 80px rgba(255, 221, 68, 0.7) !important;
+        }
+        
+        .lose-content {
+            background: linear-gradient(135deg, rgba(40,0,0,0.95) 0%, rgba(80,40,40,0.95) 100%) !important;
+            border: 4px solid #ff4444 !important;
+            box-shadow: 0 0 80px rgba(255, 68, 68, 0.7) !important;
+        }
+        
+        .win-content h2 {
+            color: #ffdd44 !important;
+            font-size: 3.5rem !important;
+            margin-bottom: 2rem !important;
+            text-shadow: 0 0 15px rgba(255, 221, 68, 0.9) !important;
+        }
+        
+        .lose-content h2 {
+            color: #ff4444 !important;
+            font-size: 3.5rem !important;
+            margin-bottom: 2rem !important;
+            text-shadow: 0 0 15px rgba(255, 68, 68, 0.9) !important;
+        }
+        
+        .win-content .score, .win-content .spirits, .lose-content .score, .lose-content .spirits {
+            font-size: 2rem !important;
+            margin: 1.5rem 0 !important;
+            color: #ffffff !important;
+        }
+        
+        .win-content .highlight {
+            color: #ffdd44 !important;
+            font-weight: bold !important;
+            font-size: 2.5rem !important;
+            text-shadow: 0 0 8px rgba(255, 221, 68, 0.7) !important;
+        }
+        
+        .lose-content .highlight {
+            color: #ffaaaa !important;
+            font-weight: bold !important;
+            font-size: 2.5rem !important;
+            text-shadow: 0 0 8px rgba(255, 170, 170, 0.7) !important;
+        }
+        
+        .win-content .message {
+            font-size: 1.8rem !important;
+            color: #88ccff !important;
+            margin: 2rem 0 !important;
+            padding: 1.5rem !important;
+            background: rgba(68, 136, 255, 0.15) !important;
+            border-radius: 12px !important;
+        }
+        
+        .lose-content .message {
+            font-size: 1.8rem !important;
+            color: #ffaaaa !important;
+            margin: 2rem 0 !important;
+            padding: 1.5rem !important;
+            background: rgba(255, 68, 68, 0.15) !important;
+            border-radius: 12px !important;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%) !important;
+            color: white !important;
+            border: none !important;
+            padding: 1.2rem 2.5rem !important;
+            font-size: 1.8rem !important;
+            font-weight: bold !important;
+            border-radius: 12px !important;
+            cursor: pointer !important;
+            margin-top: 3rem !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5) !important;
+            width: 80% !important;
+            max-width: 300px !important;
+        }
+        
+        .restart-btn:hover {
+            background: linear-gradient(135deg, #5a9ff0 0%, #468ad0 100%) !important;
+            transform: translateY(-4px) scale(1.05) !important;
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.7) !important;
+        }
+        
+        .restart-btn:active {
+            transform: translateY(2px) scale(0.98) !important;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4) !important;
+        }
+        
+        /* Asegurar que el canvas no interfiera */
+        #scene {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        
+        /* Asegurar que los mensajes estén encima de todo */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Botón de reinicio general */
+        #restartBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            padding: 12px 24px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none;
+        }
+    </style>
   </head>
   <body>
-    <div id="winMessage">
-   ¡Has logrado la misión! </div>
+    <!-- PORTADA DEL JUEGO - BOSQUE ENCANTADO -->
+    <div id="game-cover">
+      <div class="cover-bg"></div>
+      
+      <!-- Árboles decorativos -->
+      <div class="tree"></div>
+      <div class="tree"></div>
+      <div class="tree"></div>
+      <div class="tree"></div>
+      
+      <!-- Luces flotantes (fuego fatuo) -->
+      <div class="wisp"></div>
+      <div class="wisp"></div>
+      <div class="wisp"></div>
+      
+      <!-- Contenido principal de la portada -->
+      <div class="cover-container">
+        <h1 class="game-title">BOSQUE ENCANTADO</h1>
+        <p class="game-subtitle">Una experiencia VR de realidad aumentada</p>
+        
+        <div class="instructions">
+          <h3><i class="fas fa-info-circle"></i> Instrucciones:</h3>
+          <ul>
+            <li><i class="fas fa-crosshairs"></i> Encuentra y captura los espíritus del bosque</li>
+            <li><i class="fas fa-vr-cardboard"></i> Usa controles VR para una experiencia completa</li>
+            <li><i class="fas fa-headphones"></i> Activa el sonido para mayor inmersión</li>
+            <li><i class="fas fa-gamepad"></i> ¡Ten cuidado con las sorpresas oscuras!</li>
+            <li><i class="fas fa-gamepad"></i> Integrantes Ximena Alcantara Omaña y Edgar Charrez Dothi</li>
+          </ul>
+        </div>
+        
+        <button id="start-game" class="start-btn">
+          <i class="fas fa-play-circle"></i> ENTRAR AL BOSQUE
+        </button>
+      </div>
+      
+      <!-- Créditos mejorados -->
+      <div class="credits">
+        <div class="credits-title">INTEGRANTES DEL PROYECTO</div>
+        
+        <div class="credits-names">
+          <div class="integrante">
+            <div class="integrante-name">
+              <i class="fas fa-user-graduate"></i> Alcantara Omaña Ximena
+            </div>
+            <div class="integrante-id">ID: 23021613</div>
+          </div>
+          
+          <div class="integrante">
+            <div class="integrante-name">
+              <i class="fas fa-user-graduate"></i> Charrez Dothi Edgar
+            </div>
+            <div class="integrante-id">ID: 25200462</div>
+          </div>
+        </div>
+        
+        <div class="credits-course">
+          Práctica 3D Integral • Realidad Virtual • Bosque Encantado
+        </div>
+      </div>
+    </div>
+    
+    <!-- CONTENIDO DEL JUEGO VR (oculto inicialmente) -->
+    
     <!-- UI: contadores -->
     <div id="hud">
       <div class="badge"><span>Total espíritus:</span> <b id="totalPumpkins">0</b></div>
@@ -29,6 +248,115 @@
     <audio id="ambient" src="assets/audio/forest_night.mp3" preload="auto" loop></audio>
 
     <canvas id="scene"></canvas>
+    
+    <!-- MENSAJES DE VICTORIA Y DERROTA (se generan dinámicamente) -->
+    <div id="winMessage" class="game-message">
+        <!-- El contenido se genera dinámicamente desde JavaScript -->
+    </div>
+    
+    <div id="loseMessage" class="game-message">
+        <!-- El contenido se genera dinámicamente desde JavaScript -->
+    </div>
+    
+    <!-- Botón de reinicio general -->
+    <button id="restartBtn" class="restart-btn">Reiniciar Juego</button>
+    
+    <!-- Script para manejar la portada -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const gameCover = document.getElementById('game-cover');
+        const startBtn = document.getElementById('start-game');
+        const sceneCanvas = document.getElementById('scene');
+        const hud = document.getElementById('hud');
+        const winMessage = document.getElementById('winMessage');
+        const loseMessage = document.getElementById('loseMessage');
+        const restartBtn = document.getElementById('restartBtn');
+        
+        // Inicialmente ocultamos todo del juego
+        sceneCanvas.style.display = 'none';
+        hud.style.display = 'none';
+        winMessage.style.display = 'none';
+        loseMessage.style.display = 'none';
+        restartBtn.style.display = 'none';
+        
+        // Cuando se hace clic en el botón "Entrar al bosque"
+        startBtn.addEventListener('click', function() {
+          // Efecto de desvanecimiento de la portada
+          gameCover.classList.add('hidden');
+          
+          // Después de la animación, ocultamos la portada y mostramos el juego
+          setTimeout(function() {
+            gameCover.style.display = 'none';
+            sceneCanvas.style.display = 'block';
+            hud.style.display = 'grid';
+            
+            // Iniciamos el juego
+            console.log('Iniciando juego Bosque Encantado VR...');
+            
+          }, 1000); // Espera 1 segundo para que termine la animación
+          
+          // Opcional: reproducir un sonido al iniciar
+          try {
+            const startSound = new Audio();
+            startSound.src = 'https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-300.mp3';
+            startSound.volume = 0.3;
+            startSound.play();
+          } catch (e) {
+            console.log('No se pudo reproducir el sonido de inicio:', e);
+          }
+        });
+        
+        // Efecto de hover en el botón (adicional)
+        startBtn.addEventListener('mouseenter', function() {
+          this.style.transform = 'scale(1.05)';
+        });
+        
+        startBtn.addEventListener('mouseleave', function() {
+          this.style.transform = 'scale(1)';
+        });
+        
+        // Función para mostrar mensaje de victoria (para pruebas)
+        window.showWinMessage = function() {
+          winMessage.innerHTML = `
+            <div class="win-content">
+              <h2>¡VICTORIA!</h2>
+              <p class="score">Puntuación: <span class="highlight">40 puntos</span></p>
+              <p class="spirits">Espíritus amarillos: <span class="highlight">4 (+40 pts)</span></p>
+              <p class="spirits">Espíritus azules: <span class="highlight">0 (-0 pts)</span></p>
+              <p class="message">¡Has alcanzado los 40 puntos necesarios!</p>
+              <button id="restartWinBtn" class="restart-btn">Volver a Jugar</button>
+            </div>
+          `;
+          winMessage.style.display = 'grid';
+          
+          document.getElementById('restartWinBtn').addEventListener('click', function() {
+            winMessage.style.display = 'none';
+            console.log('Reiniciando juego desde victoria...');
+          });
+        };
+        
+        // Función para mostrar mensaje de derrota (para pruebas)
+        window.showLoseMessage = function() {
+          loseMessage.innerHTML = `
+            <div class="lose-content">
+              <h2>¡GAME OVER!</h2>
+              <p class="score">Puntuación final: <span class="highlight">20 puntos</span></p>
+              <p class="spirits">Espíritus amarillos: <span class="highlight">3 (+30 pts)</span></p>
+              <p class="spirits">Espíritus azules: <span class="highlight">1 (-10 pts)</span></p>
+              <p class="message">No alcanzaste los 40 puntos necesarios</p>
+              <button id="restartLoseBtn" class="restart-btn">Volver a Intentar</button>
+            </div>
+          `;
+          loseMessage.style.display = 'grid';
+          
+          document.getElementById('restartLoseBtn').addEventListener('click', function() {
+            loseMessage.style.display = 'none';
+            console.log('Reiniciando juego desde derrota...');
+          });
+        };
+      });
+    </script>
+    
     <script type="module" src="main4.js"></script>
   </body>
 </html>
